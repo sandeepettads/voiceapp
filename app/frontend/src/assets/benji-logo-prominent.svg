@@ -1,0 +1,14 @@
+<svg width="262" height="51" viewBox="0 0 262 51" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- "Benji" text - large and prominent -->
+  <text x="10" y="35" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="600" fill="#FF612B">Benji</text>
+  
+  <!-- Vertical separator bar -->
+  <rect x="110" y="12" width="2" height="27" fill="#E5E5E5"/>
+  
+  <!-- "AI Platform" text - clearly visible -->
+  <text x="125" y="28" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="500" fill="#4B4D4F">AI Platform</text>
+  
+  <!-- Small pharmacy/tech icon indicator -->
+  <circle cx="235" cy="25" r="12" fill="#FF612B" opacity="0.1"/>
+  <path d="M230 20h10v2h-4v4h-2v-4h-4v-2zm5 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" fill="#FF612B"/>
+</svg>

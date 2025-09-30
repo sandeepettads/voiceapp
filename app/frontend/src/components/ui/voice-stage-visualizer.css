@@ -1,0 +1,253 @@
+/* Voice Stage Visualizer Styles */
+
+.voice-stage-visualizer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Base voice stage styles */
+.voice-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s ease-in-out;
+  border-radius: 50%;
+}
+
+/* Size variations */
+.voice-stage.small {
+  width: 120px;
+  height: 120px;
+}
+
+.voice-stage.medium {
+  width: 200px;
+  height: 200px;
+}
+
+.voice-stage.large {
+  width: 300px;
+  height: 300px;
+}
+
+/* SVG container styling */
+.voice-stage svg {
+  width: 100%;
+  height: 100%;
+  transition: all 0.3s ease-in-out;
+}
+
+/* === IDLE STAGE === */
+.idle-stage {
+  /* Simplified - no animations */
+}
+
+/* Idle visualization SVG styling */
+.idle-visualization-svg {
+  width: 100%;
+  height: 100%;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Ensure SVG scales properly within container */
+.idle-stage .idle-visualization-svg {
+  object-fit: contain;
+}
+
+/* Apply slight opacity fade-in for better visual experience */
+.idle-stage .idle-visualization-svg {
+  animation: idleFadeIn 0.6s ease-out;
+}
+
+@keyframes idleFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* === LISTENING STAGE === */
+.listening-stage {
+  animation: listeningPulse 2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.listening-stage svg {
+  animation: listeningBreath 2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* Listening animations */
+@keyframes listeningPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.9;
+  }
+}
+
+@keyframes listeningBreath {
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1) blur(0px);
+  }
+  50% {
+    transform: scale(1.08);
+    filter: brightness(1.1) blur(0.5px);
+  }
+}
+
+/* === PROCESSING STAGE === */
+.processing-stage {
+  /* Simplified - no animations */
+}
+
+/* === RESPONDING STAGE === */
+.responding-stage {
+  /* Simplified - no animations */
+}
+
+/* === MICROPHONE STAGE === */
+.microphone-stage {
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.microphone-stage:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+.microphone-stage:active {
+  transform: scale(0.95);
+  filter: brightness(0.9);
+}
+
+.microphone-stage:focus {
+  outline: 2px solid #FF612B;
+  outline-offset: 4px;
+}
+
+/* === STAGE TRANSITIONS === */
+.voice-stage-visualizer.transitioning .voice-stage {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.voice-stage-visualizer.transitioning .voice-stage.entering {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* === RESPONSIVE BREAKPOINTS === */
+@media (max-width: 768px) {
+  .voice-stage.small {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .voice-stage.medium {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .voice-stage.large {
+    width: 220px;
+    height: 220px;
+  }
+}
+
+@media (max-width: 480px) {
+  .voice-stage.small {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .voice-stage.medium {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .voice-stage.large {
+    width: 180px;
+    height: 180px;
+  }
+}
+
+/* === ACCESSIBILITY === */
+@media (prefers-reduced-motion: reduce) {
+  .voice-stage *,
+  .voice-stage-visualizer * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .microphone-stage:hover {
+    transform: none;
+  }
+}
+
+/* === HIGH CONTRAST MODE === */
+@media (prefers-contrast: high) {
+  .voice-stage {
+    border: 2px solid currentColor;
+  }
+  
+  .microphone-stage:focus {
+    outline: 3px solid currentColor;
+    outline-offset: 2px;
+  }
+}
+
+/* === DARK MODE SUPPORT === */
+@media (prefers-color-scheme: dark) {
+  .voice-stage-visualizer {
+    filter: brightness(0.9) contrast(1.1);
+  }
+}
+
+/* === PERFORMANCE OPTIMIZATIONS === */
+.voice-stage svg {
+  will-change: transform, opacity;
+}
+
+.processing-stage .processing-ring {
+  will-change: transform;
+}
+
+.responding-stage .audio-bar {
+  will-change: transform, opacity;
+}
+
+/* === LOADING STATE === */
+.voice-stage-visualizer.loading {
+  opacity: 0.6;
+}
+
+.voice-stage-visualizer.loading .voice-stage {
+  animation: loadingPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes loadingPulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}

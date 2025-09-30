@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  openai-rag-audio-app:
+    image: docker.repo1.uhc.com/openai-rag-audio-aisearch:latest
+    ports:
+      - "8000:8000"
+    environment:
+      # Production flag to disable .env file loading
+      - RUNNING_IN_PRODUCTION=true
+      
+      # Azure OpenAI Configuration
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+      - AZURE_OPENAI_REALTIME_DEPLOYMENT=${AZURE_OPENAI_REALTIME_DEPLOYMENT}
+      - AZURE_OPENAI_REALTIME_VOICE_CHOICE=${AZURE_OPENAI_REALTIME_VOICE_CHOICE:-alloy}
+      
+      # Azure Search Configuration  
+      - AZURE_SEARCH_API_KEY=${AZURE_SEARCH_API_KEY}
+      - AZURE_SEARCH_ENDPOINT=${AZURE_SEARCH_ENDPOINT}
+      - AZURE_SEARCH_INDEX=${AZURE_SEARCH_INDEX}
+      - AZURE_SEARCH_SEMANTIC_CONFIGURATION=${AZURE_SEARCH_SEMANTIC_CONFIGURATION}
+      - AZURE_SEARCH_IDENTIFIER_FIELD=${AZURE_SEARCH_IDENTIFIER_FIELD:-chunk_id}
+      - AZURE_SEARCH_CONTENT_FIELD=${AZURE_SEARCH_CONTENT_FIELD:-chunk}
+      - AZURE_SEARCH_EMBEDDING_FIELD=${AZURE_SEARCH_EMBEDDING_FIELD:-text_vector}
+      - AZURE_SEARCH_TITLE_FIELD=${AZURE_SEARCH_TITLE_FIELD:-title}
+      - AZURE_SEARCH_USE_VECTOR_QUERY=${AZURE_SEARCH_USE_VECTOR_QUERY:-true}
+      
+      # Azure Identity (for fallback authentication)
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+    
+    restart: unless-stopped
+    
+    # Security configurations
+    security_opt:
+      - no-new-privileges:true
+    read_only: false  # Set to true if your app doesn't need to write files
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'

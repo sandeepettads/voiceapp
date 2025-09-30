@@ -1,0 +1,8 @@
+apiVersion: v1
+metadata:
+  askId: AIDE_0074310
+  caAgileId: poc
+  projectKey: com.optum.optumlabs.web:ai-speech
+  projectFriendlyName: AISpeechAvatar
+  componentType: code
+  targetQG: GATE_EXEMPT

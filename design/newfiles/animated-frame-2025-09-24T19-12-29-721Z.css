@@ -1,0 +1,84 @@
+.listening-frame {
+  position: relative;
+  width: 645px;
+  height: 645px;
+  background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.halo-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 477px;
+  height: 477px;
+  border: 5px solid;
+  border-image: radial-gradient(circle, #94F6FF 0%, white 20%, #FF612B 35%, #FFF09A 68%, #C4DBFF 94%) 1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: rotate 4.1s linear infinite;
+}
+
+.o-layer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulse 4.4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.background-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 560px;
+  height: 560px;
+  border: 1px solid rgba(148, 246, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes rotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.1); }
+}
+
+/* O Element styles */
+.o-outer-ring {
+  width: 170px;
+  height: 170px;
+  border: 12px solid;
+  border-image: linear-gradient(45deg, #FFBEA8, rgba(255, 190, 168, 0.6), #77DFFF) 1;
+  border-radius: 50%;
+  position: relative;
+}
+
+.o-inner-fill {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #FFB9A1, #FF612B, #FF9774);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.9;
+}
+
+.o-inner-hole {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 70px;
+  height: 70px;
+  background: white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}

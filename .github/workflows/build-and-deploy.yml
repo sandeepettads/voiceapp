@@ -1,0 +1,570 @@
+name: Build and Push Docker Image to Registry (x86-64)
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_name:
+        description: "Name of the Docker image"
+        required: true
+        default: "openai-rag-audio-aisearch"
+      branch:
+        description: "Branch to build from"
+        required: true
+        default: 'main'
+      docker_file_path:
+        description: "Path to Dockerfile"
+        required: true
+        default: './app'
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  packages: write
+  actions: read
+  security-events: write
+  id-token: write
+
+env:
+  REGISTRY: docker.repo1.uhc.com
+  IMAGE_NAME: openai-rag-audio-aisearch
+  AZURE_RESOURCE_GROUP: rg-speech-aiexperiment-dmo
+  WEBAPP_NAME: aispeech-rag-audio
+
+jobs:
+  build-and-deploy:
+    # Use UHG self-hosted runner (matches working pattern)
+    runs-on: uhg-runner
+    outputs:
+      docker-tag: ${{ steps.docker-tag.outputs.docker-tag }}
+      acr-server: ${{ steps.acr-creds.outputs.acr-server }}
+      acr-username: ${{ steps.acr-creds.outputs.acr-username }}
+      acr-password: ${{ steps.acr-creds.outputs.acr-password }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.inputs.branch || github.ref_name }}
+
+    - name: Set Azure credentials from secrets
+      id: azure-creds
+      run: |
+        # Validate that all required secrets are present
+        if [ -z "${{ secrets.AZURE_CLIENT_ID }}" ]; then
+          echo "Error: AZURE_CLIENT_ID secret is not set"
+          exit 1
+        fi
+        if [ -z "${{ secrets.AZURE_CLIENT_SECRET }}" ]; then
+          echo "Error: AZURE_CLIENT_SECRET secret is not set"
+          exit 1
+        fi
+        if [ -z "${{ secrets.AZURE_TENANT_ID }}" ]; then
+          echo "Error: AZURE_TENANT_ID secret is not set"
+          exit 1
+        fi
+        if [ -z "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
+          echo "Error: AZURE_SUBSCRIPTION_ID secret is not set"
+          exit 1
+        fi
+        
+        echo "✅ All Azure secrets are properly configured"
+        
+        # Set outputs for use in subsequent steps
+        echo "client-id=${{ secrets.AZURE_CLIENT_ID }}" >> $GITHUB_OUTPUT
+        echo "client-secret=${{ secrets.AZURE_CLIENT_SECRET }}" >> $GITHUB_OUTPUT
+        echo "tenant-id=${{ secrets.AZURE_TENANT_ID }}" >> $GITHUB_OUTPUT
+        echo "subscription-id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> $GITHUB_OUTPUT
+
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        creds: |
+          {
+            "clientId": "${{ steps.azure-creds.outputs.client-id }}",
+            "clientSecret": "${{ steps.azure-creds.outputs.client-secret }}",
+            "tenantId": "${{ steps.azure-creds.outputs.tenant-id }}",
+            "subscriptionId": "${{ steps.azure-creds.outputs.subscription-id }}"
+          }
+
+    - name: Set ACR Credentials from Secrets
+      id: acr-creds
+      run: |
+        echo "🔐 Setting ACR credentials from GitHub secrets (reliable approach)..."
+        
+        # Use GitHub secrets for ACR credentials (prevents masking issues)
+        ACR_SERVER="aiexp.azurecr.io"
+        ACR_USERNAME="aiexp"
+        
+        # Validate ACR secrets are present
+        if [ -z "${{ secrets.ACR_PASSWORD }}" ]; then
+          echo "⚠️  Warning: ACR_PASSWORD secret not found, trying fallback to Azure CLI extraction..."
+          
+          # Fallback to Azure CLI extraction
+          ACR_COUNT=$(az acr list --query "length([])" -o tsv)
+          
+          if [ "$ACR_COUNT" -gt 0 ]; then
+            ACR_NAME=$(az acr list --query "[0].name" -o tsv)
+            ACR_SERVER=$(az acr list --query "[0].loginServer" -o tsv)
+            ACR_USERNAME=$(az acr credential show --name $ACR_NAME --query "username" -o tsv)
+            ACR_PASSWORD=$(az acr credential show --name $ACR_NAME --query "passwords[0].value" -o tsv)
+            
+            echo "✅ ACR credentials extracted via Azure CLI (fallback)"
+          else
+            echo "❌ Error: No ACR found and no ACR_PASSWORD secret available"
+            exit 1
+          fi
+        else
+          ACR_PASSWORD="${{ secrets.ACR_PASSWORD }}"
+          echo "✅ Using ACR credentials from GitHub secrets (preferred method)"
+        fi
+        
+        echo "acr-server=$ACR_SERVER" >> $GITHUB_OUTPUT
+        echo "acr-username=$ACR_USERNAME" >> $GITHUB_OUTPUT
+        echo "acr-password=$ACR_PASSWORD" >> $GITHUB_OUTPUT
+        
+        echo "✅ ACR credentials configured successfully"
+        echo "   Server: $ACR_SERVER"
+        echo "   Username: $ACR_USERNAME"
+
+    - name: Login to Docker Registry (for base images)
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ secrets.REGISTRY_USER || steps.azure-creds.outputs.client-id }}
+        password: ${{ secrets.REGISTRY_PASSWORD || steps.azure-creds.outputs.client-secret }}
+
+    - name: Login to ACR (for pushing images)
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ steps.acr-creds.outputs.acr-server }}
+        username: ${{ steps.acr-creds.outputs.acr-username }}
+        password: ${{ steps.acr-creds.outputs.acr-password }}
+
+    - name: Generate Docker tag
+      id: docker-tag
+      run: |
+        # Generate tag with branch and SHA (matching successful pattern)
+        BRANCH_NAME=${{ github.event.inputs.branch || github.ref_name }}
+        SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+        DOCKER_TAG="${BRANCH_NAME}-${SHORT_SHA}"
+        echo "docker-tag=$DOCKER_TAG" >> $GITHUB_OUTPUT
+        echo "✅ Generated Docker tag: $DOCKER_TAG"
+
+    - name: Docker Build (x86-64 Architecture)
+      shell: bash
+      run: |
+        echo "==================Docker Build (x86-64)===================="
+        
+        # Use the target registry from ACR detection
+        TARGET_REGISTRY="${{ steps.acr-creds.outputs.acr-server }}"
+        
+        echo "🏗️  Building for target registry: $TARGET_REGISTRY"
+        
+        # Build for x86-64 (amd64) architecture - matching working pattern
+        docker build \
+          --file "${{ github.workspace }}/app/Dockerfile" \
+          --build-arg NPM_TOKEN="${{ secrets.REGISTRY_PASSWORD }}" \
+          --tag "$TARGET_REGISTRY/${{ env.IMAGE_NAME }}:${{ steps.docker-tag.outputs.docker-tag }}" \
+          --tag "$TARGET_REGISTRY/${{ env.IMAGE_NAME }}:latest" \
+          "${{ github.workspace }}/app"
+        
+        echo "✅ Docker build succeeded for x86-64 architecture!"
+        echo "📦 Built images:"
+        echo "   - $TARGET_REGISTRY/${{ env.IMAGE_NAME }}:${{ steps.docker-tag.outputs.docker-tag }}"
+        echo "   - $TARGET_REGISTRY/${{ env.IMAGE_NAME }}:latest"
+
+    - name: Verify image architecture
+      run: |
+        TARGET_REGISTRY="${{ steps.acr-creds.outputs.acr-server }}"
+        
+        # Verify it's amd64 (x86-64)
+        ARCH=$(docker inspect $TARGET_REGISTRY/${{ env.IMAGE_NAME }}:${{ steps.docker-tag.outputs.docker-tag }} | jq -r '.[0].Architecture')
+        if [ "$ARCH" != "amd64" ]; then
+          echo "❌ Error: Expected amd64 architecture, but got $ARCH"
+          exit 1
+        fi
+        echo "✅ Image successfully built for x86-64 (amd64) architecture"
+        
+        # Show image details
+        docker images $TARGET_REGISTRY/${{ env.IMAGE_NAME }}
+
+    - name: Push Docker Image to Registry
+      shell: bash
+      run: |
+        echo "==================Docker Push===================="
+        
+        TARGET_REGISTRY="${{ steps.acr-creds.outputs.acr-server }}"
+        
+        # Push with generated tag
+        docker push "$TARGET_REGISTRY/${{ env.IMAGE_NAME }}:${{ steps.docker-tag.outputs.docker-tag }}"
+        
+        # Push latest tag if on main branch
+        if [ "${{ github.ref_name }}" = "main" ]; then
+          docker push "$TARGET_REGISTRY/${{ env.IMAGE_NAME }}:latest"
+        fi
+        
+        echo "✅ Image push succeeded!"
+        echo "📦 Pushed: $TARGET_REGISTRY/${{ env.IMAGE_NAME }}:${{ steps.docker-tag.outputs.docker-tag }}"
+
+    - name: Azure logout
+      run: |
+        az logout
+      if: always()
+
+  deploy-to-webapp:
+    needs: build-and-deploy
+    runs-on: uhg-runner
+    if: github.ref_name == 'main' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Validate Required Secrets for Deployment
+      run: |
+        echo "🔐 Validating all required secrets for production deployment..."
+        
+        VALIDATION_FAILED=false
+        
+        # Check Azure Infrastructure Secrets (already validated in build job, but double-check)
+        if [ -z "${{ secrets.AZURE_CLIENT_ID }}" ]; then
+          echo "❌ Error: AZURE_CLIENT_ID secret is required for Azure authentication"
+          VALIDATION_FAILED=true
+        fi
+        
+        if [ -z "${{ secrets.AZURE_CLIENT_SECRET }}" ]; then
+          echo "❌ Error: AZURE_CLIENT_SECRET secret is required for Azure authentication"
+          VALIDATION_FAILED=true
+        fi
+        
+        if [ -z "${{ secrets.AZURE_TENANT_ID }}" ]; then
+          echo "❌ Error: AZURE_TENANT_ID secret is required for Azure authentication"
+          VALIDATION_FAILED=true
+        fi
+        
+        if [ -z "${{ secrets.AZURE_SUBSCRIPTION_ID }}" ]; then
+          echo "❌ Error: AZURE_SUBSCRIPTION_ID secret is required for Azure authentication"
+          VALIDATION_FAILED=true
+        fi
+        
+        # Check Application-Specific Critical Secrets
+        if [ -z "${{ secrets.AZURE_OPENAI_API_KEY }}" ]; then
+          echo "❌ Error: AZURE_OPENAI_API_KEY secret is required for OpenAI authentication"
+          echo "   This is needed for: AZURE_OPENAI_API_KEY environment variable"
+          VALIDATION_FAILED=true
+        fi
+        
+        if [ -z "${{ secrets.AZURE_SEARCH_KEY }}" ]; then
+          echo "❌ Error: AZURE_SEARCH_KEY secret is required for Azure Search authentication"
+          echo "   This is needed for: AZURE_SEARCH_KEY and AZURE_SEARCH_API_KEY environment variables"
+          VALIDATION_FAILED=true
+        fi
+        
+        # Check ACR Authentication Secret
+        if [ -z "${{ secrets.ACR_PASSWORD }}" ]; then
+          echo "⚠️  Warning: ACR_PASSWORD secret not set, will use Azure CLI extraction as fallback"
+          echo "   📝 Recommended: Add ACR_PASSWORD secret for reliable authentication"
+        else
+          echo "✅ ACR_PASSWORD secret is configured"
+        fi
+        
+        # Optional: Check Registry Secrets (these have fallbacks)
+        if [ -z "${{ secrets.REGISTRY_USER }}" ]; then
+          echo "⚠️  Warning: REGISTRY_USER secret not set, will use AZURE_CLIENT_ID as fallback"
+        fi
+        
+        if [ -z "${{ secrets.REGISTRY_PASSWORD }}" ]; then
+          echo "⚠️  Warning: REGISTRY_PASSWORD secret not set, will use AZURE_CLIENT_SECRET as fallback"
+        fi
+        
+        # Summary
+        if [ "$VALIDATION_FAILED" = "true" ]; then
+          echo "❌ Critical secrets validation failed! Please add the missing secrets to GitHub repository settings."
+          echo "📝 To add secrets: Go to Repository Settings > Secrets and variables > Actions > New repository secret"
+          exit 1
+        fi
+        
+        echo "✅ All required application secrets are configured!"
+        echo "🔒 Secrets validated:"
+        echo "   ✅ AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID"
+        echo "   ✅ AZURE_OPENAI_API_KEY (for OpenAI service authentication)"
+        echo "   ✅ AZURE_SEARCH_KEY (for Azure Search service authentication)"
+
+    - name: Azure Login for Deployment
+      uses: azure/login@v2
+      with:
+        creds: |
+          {
+            "clientId": "${{ secrets.AZURE_CLIENT_ID }}",
+            "clientSecret": "${{ secrets.AZURE_CLIENT_SECRET }}",
+            "tenantId": "${{ secrets.AZURE_TENANT_ID }}",
+            "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+          }
+
+    - name: Check Current Web App Configuration
+      id: current-config
+      run: |
+        echo "🔍 Checking current web app configuration..."
+        
+        # Get current container configuration
+        CURRENT_IMAGE=$(az webapp config show --name ${{ env.WEBAPP_NAME }} --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "linuxFxVersion" -o tsv)
+        
+        echo "Current image: $CURRENT_IMAGE"
+        echo "current-image=$CURRENT_IMAGE" >> $GITHUB_OUTPUT
+        
+        # Check container registry settings
+        az webapp config container show --name ${{ env.WEBAPP_NAME }} --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --output table
+
+    - name: Configure Web App Container Settings
+      id: configure-webapp
+      run: |
+        echo "==================Web App Container Configuration=================="
+        
+        # Use latest tag for stable deployments (avoids ACR auth issues with specific commit tags)
+        IMAGE_URI="${{ needs.build-and-deploy.outputs.acr-server }}/${{ env.IMAGE_NAME }}:latest"
+        
+        echo "🚀 Configuring web app with latest stable image..."
+        echo "   Web App: ${{ env.WEBAPP_NAME }}"
+        echo "   Resource Group: ${{ env.AZURE_RESOURCE_GROUP }}"
+        echo "   Image: $IMAGE_URI"
+        echo "   Registry: https://${{ needs.build-and-deploy.outputs.acr-server }}"
+        
+        # Configure the web app to use the latest Docker image with Admin Credentials
+        echo "🔐 Using ACR Admin Credentials for authentication (proven working solution)..."
+        
+        # Configure container with proper ACR authentication to prevent ImagePullFailure
+        # Use secret directly to avoid job output masking issues
+        if [ -n "${{ secrets.ACR_PASSWORD }}" ]; then
+          echo "🔐 Using ACR_PASSWORD from GitHub secrets (reliable method)"
+          ACR_PASSWORD="${{ secrets.ACR_PASSWORD }}"
+        else
+          echo "⚠️  Falling back to job output (may be masked)"
+          ACR_PASSWORD="${{ needs.build-and-deploy.outputs.acr-password }}"
+        fi
+        
+        az webapp config container set \
+          --name ${{ env.WEBAPP_NAME }} \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --container-image-name "$IMAGE_URI" \
+          --container-registry-url "https://${{ needs.build-and-deploy.outputs.acr-server }}" \
+          --container-registry-user "${{ needs.build-and-deploy.outputs.acr-username }}" \
+          --container-registry-password "$ACR_PASSWORD"
+        
+        echo "✅ Web app container configured with ACR admin credentials!"
+        
+        echo "configured-image=$IMAGE_URI" >> $GITHUB_OUTPUT
+
+    - name: Configure Correct Startup Command
+      run: |
+        echo "🔧 Configuring startup command to fix WSGI module issue..."
+        
+        # Set the correct startup command for aiohttp application
+        # This fixes the "Missing Python WSGI module" error by using app:create_app instead of wsgi:app
+        az webapp config set \
+          --name ${{ env.WEBAPP_NAME }} \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --startup-file "python -m gunicorn --bind=0.0.0.0:8000 --timeout 600 --worker-class aiohttp.GunicornWebWorker --workers 1 app:create_app"
+        
+        echo "✅ Startup command configured: app:create_app (fixed WSGI module reference)!"
+
+    - name: Verify and Fix ACR Authentication
+      run: |
+        echo "🔍 Verifying ACR authentication configuration..."
+        
+        # Double-check that ACR credentials are properly set
+        CURRENT_REGISTRY_URL=$(az webapp config appsettings list --name ${{ env.WEBAPP_NAME }} --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "[?name=='DOCKER_REGISTRY_SERVER_URL'].value" -o tsv)
+        CURRENT_REGISTRY_USER=$(az webapp config appsettings list --name ${{ env.WEBAPP_NAME }} --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "[?name=='DOCKER_REGISTRY_SERVER_USERNAME'].value" -o tsv)
+        
+        echo "Current registry URL: $CURRENT_REGISTRY_URL"
+        echo "Current registry user: $CURRENT_REGISTRY_USER"
+        
+        # Ensure ACR credentials are properly configured (backup safety check)
+        if [ "$CURRENT_REGISTRY_USER" != "${{ needs.build-and-deploy.outputs.acr-username }}" ]; then
+          echo "⚠️  ACR credentials mismatch detected, re-applying..."
+          
+          az webapp config appsettings set \
+            --name ${{ env.WEBAPP_NAME }} \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --settings \
+              DOCKER_REGISTRY_SERVER_URL="https://${{ needs.build-and-deploy.outputs.acr-server }}" \
+              DOCKER_REGISTRY_SERVER_USERNAME="${{ needs.build-and-deploy.outputs.acr-username }}" \
+              DOCKER_REGISTRY_SERVER_PASSWORD="${{ needs.build-and-deploy.outputs.acr-password }}"
+          
+          echo "✅ ACR credentials re-applied as app settings"
+        else
+          echo "✅ ACR credentials are correctly configured"
+        fi
+
+    - name: Set Additional App Settings (if needed)
+      run: |
+        echo "🔧 Setting additional app settings..."
+        
+        # Set any required environment variables
+        az webapp config appsettings set \
+          --name ${{ env.WEBAPP_NAME }} \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --settings \
+            WEBSITES_ENABLE_APP_SERVICE_STORAGE="false" \
+            WEBSITES_PORT="8000" \
+            DOCKER_ENABLE_CI="true" \
+            RUNNING_IN_PRODUCTION="true" \
+            WEBSITES_CONTAINER_START_TIME_LIMIT="1800" \
+            WEBSITE_HTTPLOGGING_RETENTION_DAYS="3"
+        
+        echo "✅ Basic app settings configured!"
+
+    - name: Configure Production App Settings
+      run: |
+        echo "🔧 Setting production-specific app settings..."
+        
+        # Set production Azure service configurations
+        # Note: Vector search is disabled because the current index 'gptkbindex-with-vector' 
+        # has text_vector field as Edm.String instead of Collection(Edm.Single)
+        # To enable vector search, use an index with proper vector fields or create a new one
+        az webapp config appsettings set \
+          --name ${{ env.WEBAPP_NAME }} \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --settings \
+            AZURE_OPENAI_ENDPOINT="https://llm-grounding-service.openai.azure.com/" \
+            AZURE_OPENAI_API_KEY="${{ secrets.AZURE_OPENAI_API_KEY }}" \
+            AZURE_OPENAI_REALTIME_DEPLOYMENT="gpt-realtime" \
+            AZURE_OPENAI_CHAT_DEPLOYMENT="gpt-4o" \
+            AZURE_OPENAI_EMBEDDING_DEPLOYMENT="gpt-4o" \
+            AZURE_OPENAI_REALTIME_VOICE_CHOICE="marin" \
+            AZURE_SEARCH_ENDPOINT="https://search-grounding-service.search.windows.net" \
+            AZURE_SEARCH_KEY="${{ secrets.AZURE_SEARCH_KEY }}" \
+            AZURE_SEARCH_API_KEY="${{ secrets.AZURE_SEARCH_KEY }}" \
+            AZURE_SEARCH_INDEX="gptkbindex" \
+            AZURE_SEARCH_IDENTIFIER_FIELD="chunk_id" \
+            AZURE_SEARCH_CONTENT_FIELD="chunk" \
+            AZURE_SEARCH_TITLE_FIELD="title" \
+            AZURE_SEARCH_USE_VECTOR_QUERY="false" \
+            AZURE_CLIENT_ID="${{ secrets.AZURE_CLIENT_ID }}" \
+            AZURE_CLIENT_SECRET="${{ secrets.AZURE_CLIENT_SECRET }}" \
+            AZURE_TENANT_ID="${{ secrets.AZURE_TENANT_ID }}" \
+            AZURE_AUTH_METHOD="service_principal" \
+            ENVIRONMENT="production"
+        
+        echo "✅ Production app settings configured!"
+
+    - name: Configure Health Check
+      run: |
+        echo "🏥 Configuring health check endpoint..."
+        
+        # Set health check path
+        az webapp config set \
+          --name ${{ env.WEBAPP_NAME }} \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --generic-configurations '{"healthCheckPath": "/health"}'
+        
+        echo "✅ Health check endpoint configured at /health!"
+
+    - name: Restart Web App
+      run: |
+        echo "🔄 Restarting web app to apply new configuration..."
+        
+        az webapp restart \
+          --name ${{ env.WEBAPP_NAME }} \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }}
+        
+        echo "✅ Web app restart initiated!"
+
+    - name: Wait for Deployment to Complete
+      run: |
+        echo "⏳ Waiting for deployment to complete..."
+        
+        # Wait for the app to be ready
+        sleep 60
+        
+        echo "✅ Deployment wait completed!"
+
+    - name: Verify Web App Direct Access
+      id: verify-webapp
+      run: |
+        echo "🧪 Testing web app direct access..."
+        
+        WEBAPP_URL="https://${{ env.WEBAPP_NAME }}.azurewebsites.net"
+        echo "Testing URL: $WEBAPP_URL"
+        
+        # Test the web app with retries
+        MAX_RETRIES=5
+        RETRY_COUNT=0
+        
+        while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$WEBAPP_URL" --connect-timeout 30 || echo "000")
+          
+          echo "Attempt $((RETRY_COUNT + 1)): HTTP Status = $HTTP_STATUS"
+          
+          if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "301" ] || [ "$HTTP_STATUS" = "302" ]; then
+            echo "✅ Web app is responding successfully! Status: $HTTP_STATUS"
+            echo "webapp-status=success" >> $GITHUB_OUTPUT
+            echo "webapp-url=$WEBAPP_URL" >> $GITHUB_OUTPUT
+            break
+          elif [ "$HTTP_STATUS" = "503" ]; then
+            echo "⏳ Web app is still starting up (503). Waiting..."
+            sleep 30
+          else
+            echo "⚠️  Unexpected status: $HTTP_STATUS. Retrying..."
+            sleep 15
+          fi
+          
+          RETRY_COUNT=$((RETRY_COUNT + 1))
+        done
+        
+        if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+          echo "❌ Web app is not responding after $MAX_RETRIES attempts"
+          echo "webapp-status=failed" >> $GITHUB_OUTPUT
+          # Don't fail the job, continue to next steps
+        fi
+
+    - name: Final Configuration Validation
+      run: |
+        echo "🔍 Final validation of all applied fixes..."
+        
+        # Verify startup command is correct (prevents WSGI module error)
+        STARTUP_CMD=$(az webapp config show --name ${{ env.WEBAPP_NAME }} --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "appCommandLine" -o tsv)
+        echo "Startup command: $STARTUP_CMD"
+        
+        if echo "$STARTUP_CMD" | grep -q "app:create_app"; then
+          echo "✅ Startup command correctly configured (WSGI fix applied)"
+        else
+          echo "⚠️  WARNING: Startup command may not be correct"
+        fi
+        
+        # Verify image tag is latest
+        CURRENT_IMAGE=$(az webapp config show --name ${{ env.WEBAPP_NAME }} --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "linuxFxVersion" -o tsv)
+        echo "Container image: $CURRENT_IMAGE"
+        
+        if echo "$CURRENT_IMAGE" | grep -q ":latest"; then
+          echo "✅ Using latest tag (ACR auth fix applied)"
+        else
+          echo "⚠️  WARNING: Not using latest tag"
+        fi
+        
+        # Verify ACR credentials are set
+        REGISTRY_USER=$(az webapp config appsettings list --name ${{ env.WEBAPP_NAME }} --resource-group ${{ env.AZURE_RESOURCE_GROUP }} --query "[?name=='DOCKER_REGISTRY_SERVER_USERNAME'].value" -o tsv)
+        
+        if [ -n "$REGISTRY_USER" ]; then
+          echo "✅ ACR credentials configured: $REGISTRY_USER"
+        else
+          echo "⚠️  WARNING: ACR credentials not found"
+        fi
+        
+        echo "✅ Configuration validation completed!"
+
+    - name: Display Deployment Summary
+      run: |
+        echo "==================Deployment Summary=================="
+        echo "✅ Build completed: ${{ needs.build-and-deploy.outputs.acr-server }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-deploy.outputs.docker-tag }}"
+        echo "✅ Web app configured: ${{ env.WEBAPP_NAME }}"
+        echo "🌐 Direct URL: https://${{ env.WEBAPP_NAME }}.azurewebsites.net"
+        echo "📊 Status: ${{ steps.verify-webapp.outputs.webapp-status }}"
+        echo "✅ WSGI Module Fix: Applied (app:create_app startup command)"
+        echo "✅ ACR Authentication: Applied (latest tag + admin credentials)"
+        echo "📝 Next step: Configure Application Gateway routing"
+
+    - name: Azure logout
+      run: |
+        az logout
+      if: always()

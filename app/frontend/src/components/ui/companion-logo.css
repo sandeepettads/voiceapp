@@ -1,0 +1,414 @@
+/* Companion Logo Styles */
+.companion-logo-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* Animated rings around the logo */
+.companion-rings {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+}
+
+.ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 1px solid rgba(255, 97, 43, 0.2);
+    opacity: 0;
+    animation: none;
+}
+
+.ring-1 {
+    width: 160px;
+    height: 160px;
+}
+
+.ring-2 {
+    width: 200px;
+    height: 200px;
+}
+
+.ring-3 {
+    width: 240px;
+    height: 240px;
+}
+
+/* Active state rings */
+.companion-rings.active .ring {
+    animation: pulseRing 2s ease-in-out infinite;
+}
+
+.companion-rings.active .ring-1 {
+    animation-delay: 0s;
+}
+
+.companion-rings.active .ring-2 {
+    animation-delay: 0.5s;
+}
+
+.companion-rings.active .ring-3 {
+    animation-delay: 1s;
+}
+
+/* Listening state rings */
+.companion-rings.listening .ring {
+    border-color: rgba(30, 58, 138, 0.4);
+    animation: listeningRing 1.5s ease-in-out infinite;
+}
+
+/* Main logo container */
+.companion-logo {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    z-index: 1;
+    background: radial-gradient(circle, rgba(30, 58, 138, 0.1) 0%, rgba(255, 97, 43, 0.05) 100%);
+    box-shadow: 0 4px 20px rgba(30, 58, 138, 0.1);
+}
+
+.companion-logo:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 30px rgba(30, 58, 138, 0.15);
+}
+
+.companion-logo.active {
+    animation: breathe 2s ease-in-out infinite;
+    box-shadow: 0 0 30px rgba(255, 97, 43, 0.3);
+}
+
+.companion-logo.listening {
+    animation: listening 1.5s ease-in-out infinite;
+    box-shadow: 0 0 40px rgba(30, 58, 138, 0.4);
+}
+
+/* Logo background */
+.logo-background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.gradient-circle {
+    width: 100%;
+    height: 100%;
+    background: conic-gradient(
+        from 0deg,
+        rgba(255, 97, 43, 0.8),
+        rgba(255, 138, 80, 0.6),
+        rgba(30, 58, 138, 0.8),
+        rgba(55, 48, 163, 0.6),
+        rgba(255, 97, 43, 0.8)
+    );
+    border-radius: 50%;
+    opacity: 0.1;
+    transition: opacity 0.3s ease;
+}
+
+.companion-logo.active .gradient-circle {
+    opacity: 0.2;
+    animation: rotate 10s linear infinite;
+}
+
+.companion-logo.listening .gradient-circle {
+    opacity: 0.3;
+    animation: rotate 5s linear infinite;
+}
+
+/* Logo icon */
+.logo-icon {
+    position: relative;
+    z-index: 2;
+    width: 60%;
+    height: 60%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* SVG animations */
+.logo-hexagon {
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+.companion-logo.active .logo-hexagon {
+    animation: hexagonPulse 2s ease-in-out infinite;
+}
+
+.companion-logo.listening .logo-hexagon {
+    stroke-width: 3;
+    filter: drop-shadow(0 0 5px rgba(30, 58, 138, 0.6));
+}
+
+.node {
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+.companion-logo.active .node {
+    animation: nodePulse 1.5s ease-in-out infinite;
+}
+
+.companion-logo.active .node-1 { animation-delay: 0s; }
+.companion-logo.active .node-2 { animation-delay: 0.2s; }
+.companion-logo.active .node-3 { animation-delay: 0.4s; }
+.companion-logo.active .node-4 { animation-delay: 0.6s; }
+
+.connection {
+    transition: all 0.3s ease;
+    stroke-dasharray: 0;
+}
+
+.companion-logo.active .connection {
+    stroke-dasharray: 5, 5;
+    animation: connectionFlow 2s linear infinite;
+}
+
+.companion-logo.listening .connection {
+    stroke-width: 2;
+    stroke-dasharray: 3, 3;
+    animation: connectionFlow 1s linear infinite;
+}
+
+.central-node {
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+.companion-logo.active .central-node {
+    animation: centralPulse 1.8s ease-in-out infinite;
+}
+
+.companion-logo.listening .central-node {
+    filter: drop-shadow(0 0 3px rgba(30, 58, 138, 0.8));
+}
+
+.central-core {
+    transition: all 0.3s ease;
+}
+
+.companion-logo.listening .central-core {
+    opacity: 1;
+    animation: coreBlink 0.8s ease-in-out infinite;
+}
+
+/* Pulse indicator */
+.pulse-indicator {
+    position: absolute;
+    top: 15%;
+    right: 15%;
+    z-index: 3;
+}
+
+.pulse-dot {
+    width: 12px;
+    height: 12px;
+    background: linear-gradient(45deg, #FF612B, #FF8A50);
+    border-radius: 50%;
+    animation: pulseDot 1s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(255, 97, 43, 0.6);
+}
+
+/* Status text */
+.companion-status {
+    text-align: center;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.status-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-text.idle {
+    color: #6b7280;
+}
+
+.status-text.active {
+    color: #FF612B;
+    animation: textGlow 2s ease-in-out infinite;
+}
+
+.status-text.listening {
+    color: #1e3a8a;
+    animation: textPulse 1s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes pulseRing {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+}
+
+@keyframes listeningRing {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+    50% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+}
+
+@keyframes breathe {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+@keyframes listening {
+    0%, 100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+    50% {
+        transform: scale(1.03);
+        filter: brightness(1.1);
+    }
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes hexagonPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+}
+
+@keyframes nodePulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
+}
+
+@keyframes connectionFlow {
+    0% {
+        stroke-dashoffset: 0;
+    }
+    100% {
+        stroke-dashoffset: 10;
+    }
+}
+
+@keyframes centralPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes coreBlink {
+    0%, 100% {
+        opacity: 0.9;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+@keyframes pulseDot {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.3);
+        opacity: 0.7;
+    }
+}
+
+@keyframes textGlow {
+    0%, 100% {
+        text-shadow: 0 0 5px rgba(255, 97, 43, 0.3);
+    }
+    50% {
+        text-shadow: 0 0 10px rgba(255, 97, 43, 0.6);
+    }
+}
+
+@keyframes textPulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .ring-1 { width: 120px; height: 120px; }
+    .ring-2 { width: 150px; height: 150px; }
+    .ring-3 { width: 180px; height: 180px; }
+    
+    .status-text {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .ring-1 { width: 100px; height: 100px; }
+    .ring-2 { width: 120px; height: 120px; }
+    .ring-3 { width: 140px; height: 140px; }
+    
+    .pulse-dot {
+        width: 10px;
+        height: 10px;
+    }
+}

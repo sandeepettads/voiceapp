@@ -1,0 +1,420 @@
+/* Optum Animated Logo Styles */
+.optum-logo-animated-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* Animated rings around the logo - DISABLED */
+.optum-rings {
+    display: none; /* Hide all rings completely */
+}
+
+.ring {
+    display: none; /* Hide all rings completely */
+}
+
+/* Main logo container - Futuristic Glass Morphism */
+.optum-logo {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    z-index: 1;
+    
+    /* Futuristic glass morphism background */
+    background: 
+        radial-gradient(circle at 30% 30%, rgba(255, 138, 80, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 70% 70%, rgba(255, 97, 43, 0.1) 0%, transparent 50%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    
+    /* Enhanced glass effect */
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 138, 80, 0.2);
+    
+    /* Futuristic glow */
+    box-shadow: 
+        0 8px 32px rgba(255, 97, 43, 0.15),
+        0 4px 16px rgba(255, 138, 80, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.optum-logo:hover {
+    transform: scale(1.08);
+    
+    /* Enhanced hover glow */
+    box-shadow: 
+        0 12px 48px rgba(255, 97, 43, 0.25),
+        0 6px 24px rgba(255, 138, 80, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+        
+    /* Subtle border enhancement */
+    border-color: rgba(255, 138, 80, 0.3);
+}
+
+/* Different states - Enhanced Futuristic Effects */
+.optum-logo.active {
+    animation: optumBreathe 2s ease-in-out infinite;
+    
+    /* Enhanced active glow */
+    box-shadow: 
+        0 0 40px rgba(255, 97, 43, 0.4),
+        0 0 80px rgba(255, 138, 80, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+        
+    border-color: rgba(255, 138, 80, 0.4);
+}
+
+.optum-logo.listening {
+    animation: optumListening 1.5s ease-in-out infinite;
+    
+    /* Pulsing listening glow */
+    box-shadow: 
+        0 0 50px rgba(255, 97, 43, 0.5),
+        0 0 100px rgba(255, 138, 80, 0.25),
+        inset 0 2px 0 rgba(255, 255, 255, 0.2),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+        
+    border-color: rgba(255, 138, 80, 0.5);
+}
+
+.optum-logo.speaking {
+    animation: optumSpeaking 1s ease-in-out infinite;
+    
+    /* Intense speaking glow with glass morphism */
+    background: 
+        radial-gradient(circle at 30% 30%, rgba(255, 138, 80, 0.25) 0%, transparent 60%),
+        radial-gradient(circle at 70% 70%, rgba(255, 97, 43, 0.2) 0%, transparent 60%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+        
+    box-shadow: 
+        0 0 60px rgba(255, 97, 43, 0.7),
+        0 0 120px rgba(255, 138, 80, 0.3),
+        0 0 180px rgba(255, 97, 43, 0.1),
+        inset 0 2px 0 rgba(255, 255, 255, 0.25),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+        
+    border-color: rgba(255, 138, 80, 0.6);
+    backdrop-filter: blur(15px);
+}
+
+/* Optum 'O' container */
+.optum-o-container {
+    position: relative;
+    z-index: 1;
+    width: 60%;
+    height: 60%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.optum-o-svg {
+    width: 100%;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+/* The 'O' path animations */
+.optum-o-path {
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+/* Idle state - subtle glow */
+.optum-logo .optum-o-path {
+    filter: drop-shadow(0 0 2px rgba(255, 97, 43, 0.3));
+}
+
+/* Active state - gentle pulse */
+.optum-logo.active .optum-o-path {
+    animation: optumOPulse 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 5px rgba(255, 97, 43, 0.5));
+}
+
+/* Listening state - breathing effect */
+.optum-logo.listening .optum-o-path {
+    animation: optumOListening 1.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px rgba(255, 97, 43, 0.6));
+}
+
+/* Speaking state - transformation preparation */
+.optum-logo.speaking .optum-o-path {
+    animation: optumOSpeaking 1s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px rgba(255, 97, 43, 0.8));
+    fill-opacity: 0.8; /* Slightly transparent when audio visualization is active */
+}
+
+/* Inner circle animation for speaking mode */
+.inner-circle {
+    animation: optumInnerCircle 2s ease-in-out infinite;
+}
+
+/* Audio visualization canvas */
+.audio-visualization-canvas {
+    border-radius: 50%;
+}
+
+/* Pulse indicator */
+.pulse-indicator {
+    position: absolute;
+    top: 15%;
+    right: 15%;
+    z-index: 3;
+}
+
+.pulse-dot {
+    width: 12px;
+    height: 12px;
+    background: linear-gradient(45deg, #FF612B, #FF8A50);
+    border-radius: 50%;
+    animation: optumPulseDot 1s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(255, 97, 43, 0.6);
+}
+
+/* Status text */
+.optum-status {
+    text-align: center;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.status-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-text.idle {
+    color: #6b7280;
+}
+
+.status-text.active {
+    color: #FF612B;
+    animation: optumTextGlow 2s ease-in-out infinite;
+}
+
+.status-text.listening {
+    color: #FF612B;
+    animation: optumTextPulse 1s ease-in-out infinite;
+}
+
+.status-text.speaking {
+    color: #FF612B;
+    animation: optumTextSpeaking 0.8s ease-in-out infinite;
+    font-weight: 600;
+}
+
+/* ANIMATIONS */
+
+@keyframes optumRingPulse {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+}
+
+@keyframes optumListeningRing {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+    50% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+}
+
+@keyframes optumSpeakingRing {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.95);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.05);
+    }
+}
+
+@keyframes optumBreathe {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+@keyframes optumListening {
+    0%, 100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+    50% {
+        transform: scale(1.03);
+        filter: brightness(1.1);
+    }
+}
+
+@keyframes optumSpeaking {
+    0%, 100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+    25% {
+        transform: scale(1.02);
+        filter: brightness(1.05);
+    }
+    75% {
+        transform: scale(0.98);
+        filter: brightness(0.95);
+    }
+}
+
+@keyframes optumOPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.02);
+        opacity: 0.9;
+    }
+}
+
+@keyframes optumOListening {
+    0%, 100% {
+        transform: scale(1);
+        fill-opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        fill-opacity: 0.8;
+    }
+}
+
+@keyframes optumOSpeaking {
+    0%, 100% {
+        transform: scale(1) rotate(0deg);
+    }
+    25% {
+        transform: scale(1.02) rotate(1deg);
+    }
+    75% {
+        transform: scale(0.98) rotate(-1deg);
+    }
+}
+
+@keyframes optumInnerCircle {
+    0%, 100% {
+        stroke-opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        stroke-opacity: 0.6;
+        transform: scale(1.1);
+    }
+}
+
+@keyframes optumPulseDot {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.3);
+        opacity: 0.7;
+    }
+}
+
+@keyframes optumTextGlow {
+    0%, 100% {
+        text-shadow: 0 0 5px rgba(255, 97, 43, 0.3);
+    }
+    50% {
+        text-shadow: 0 0 10px rgba(255, 97, 43, 0.6);
+    }
+}
+
+@keyframes optumTextPulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes optumTextSpeaking {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.02);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .ring-1 { width: 120px; height: 120px; }
+    .ring-2 { width: 150px; height: 150px; }
+    .ring-3 { width: 180px; height: 180px; }
+    
+    .status-text {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .ring-1 { width: 100px; height: 100px; }
+    .ring-2 { width: 120px; height: 120px; }
+    .ring-3 { width: 140px; height: 140px; }
+    
+    .pulse-dot {
+        width: 10px;
+        height: 10px;
+    }
+}
+
+/* Accessibility - Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .optum-logo, 
+    .optum-o-path,
+    .ring,
+    .pulse-dot,
+    .inner-circle {
+        animation: none !important;
+    }
+    
+    .optum-logo.speaking .optum-o-path {
+        fill-opacity: 0.8;
+    }
+}

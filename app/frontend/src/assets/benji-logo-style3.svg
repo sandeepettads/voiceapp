@@ -1,0 +1,13 @@
+<svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- "B" in OptumRx orange as initial letter -->
+  <text x="6" y="25" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="700" fill="#FF612B">B</text>
+  
+  <!-- "enji" in matching gray -->
+  <text x="24" y="25" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="300" fill="#4B4D4F">enji</text>
+  
+  <!-- Vertical line separator -->
+  <line x1="78" y1="12" x2="78" y2="28" stroke="#E5E5E5" stroke-width="1"/>
+  
+  <!-- "AI Platform" with professional spacing -->
+  <text x="84" y="22" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="600" fill="#8B8B8B" letter-spacing="1px">AI PLATFORM</text>
+</svg>

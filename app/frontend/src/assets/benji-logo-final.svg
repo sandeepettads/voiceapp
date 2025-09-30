@@ -1,0 +1,10 @@
+<svg width="262" height="51" viewBox="0 0 262 51" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- "Benji" text - MUCH larger to match OptumRx prominence -->
+  <text x="5" y="38" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="38" font-weight="700" fill="#FF612B">Benji</text>
+  
+  <!-- Minimal vertical separator bar - adjusted position -->
+  <rect x="110" y="12" width="2" height="27" fill="#E5E5E5"/>
+  
+  <!-- "AI Platform" text - larger and prominent -->
+  <text x="120" y="38" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="600" fill="#4B4D4F">AI Platform</text>
+</svg>

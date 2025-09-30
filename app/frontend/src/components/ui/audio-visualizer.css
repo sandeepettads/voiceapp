@@ -1,0 +1,114 @@
+/* Audio Visualizer Styles */
+.audio-visualizer {
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.audio-visualizer.fullscreen {
+    border-radius: 0;
+    animation: expandToFullscreen 0.4s ease-out forwards;
+    opacity: 1;
+    visibility: visible;
+}
+
+.audio-canvas {
+    border-radius: inherit;
+    transition: all 0.3s ease;
+}
+
+.fullscreen-canvas {
+    filter: drop-shadow(0 0 30px rgba(255, 97, 43, 0.3));
+}
+
+/* Animations */
+@keyframes expandToFullscreen {
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes smoothFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes contractFromFullscreen {
+    from {
+        transform: scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+}
+
+/* Glow effect for fullscreen mode */
+.audio-visualizer.fullscreen::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 90%;
+    height: 300px;
+    max-width: 900px;
+    background: radial-gradient(ellipse at center, rgba(255, 97, 43, 0.15) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Pulse effect for recording indicator */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .audio-visualizer.fullscreen .absolute.bottom-8 {
+        bottom: 4rem;
+        padding: 0 1rem;
+    }
+    
+    .fullscreen-canvas {
+        width: 95% !important;
+        height: 150px !important;
+    }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    .audio-visualizer,
+    .audio-canvas {
+        transition: none;
+    }
+    
+    .audio-visualizer.fullscreen {
+        animation: none;
+    }
+    
+    .animate-pulse {
+        animation: none;
+    }
+}

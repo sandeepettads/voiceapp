@@ -1,0 +1,50 @@
+<svg width="645" height="645" viewBox="0 0 645 645" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Original Figma gradients -->
+    <linearGradient gradientUnits="userSpaceOnUse" id="paint0_linear" x1="191.75" x2="453.363" y1="198.032" y2="493.126">
+      <stop stop-color="#FFBEA8" />
+      <stop stop-opacity="0.6" />
+      <stop offset="0.198265" stop-color="white" />
+      <stop offset="0.418732" stop-color="#C8BBFF" />
+      <stop offset="0.740385" stop-color="white" />
+      <stop offset="1" stop-color="#77DFFF" />
+    </linearGradient>
+    <linearGradient gradientUnits="userSpaceOnUse" id="paint2_linear" x1="169.086" x2="493.145" y1="168.341" y2="543.756">
+      <stop stop-color="#FFB9A1" />
+      <stop offset="0.532389" stop-color="#FF612B" />
+      <stop offset="0.789993" stop-color="#FF9774" />
+      <stop offset="1" stop-color="#FF612B" />
+    </linearGradient>
+    <radialGradient cx="0" cy="0" gradientTransform="translate(305.035 327.533) rotate(28.7674) scale(290.968)" gradientUnits="userSpaceOnUse" id="paint6_radial" r="1">
+      <stop stop-color="#94F6FF" />
+      <stop offset="0.201923" stop-color="white" />
+      <stop offset="0.350962" stop-color="#FF612B" />
+      <stop offset="0.685096" stop-color="#FFF09A" />
+      <stop offset="0.942308" stop-color="#C4DBFF" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Background glow -->
+  <circle cx="322.5" cy="322.5" r="280" fill="none" stroke="url(#paint0_linear)" 
+          stroke-width="1" opacity="0.1"/>
+  
+  <!-- Halo Ring (Rotating) -->
+  <circle cx="322.712" cy="322.712" r="238.56" fill="none" stroke="url(#paint6_radial)" 
+          stroke-width="5" transform-origin="322.712 322.712">
+    <animateTransform attributeName="transform" type="rotate" 
+                      values="0 322.712 322.712;360 322.712 322.712" 
+                      dur="4.1s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- The - O Layer (Pulsating) -->
+  <g transform-origin="322.5 322.5">
+    <animateTransform attributeName="transform" type="scale" 
+                      values="1;1.1;1" dur="4.4s" repeatCount="indefinite"/>
+    <!-- Outer O ring -->
+    <circle cx="322.5" cy="322.5" r="85" fill="none" stroke="url(#paint0_linear)" stroke-width="12" opacity="0.8"/>
+    <!-- Inner O filled -->
+    <circle cx="322.5" cy="322.5" r="60" fill="url(#paint2_linear)" opacity="0.9"/>
+    <!-- Inner O hole -->
+    <circle cx="322.5" cy="322.5" r="35" fill="white"/>
+  </g>
+</svg>
