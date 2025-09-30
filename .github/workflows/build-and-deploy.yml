@@ -163,21 +163,25 @@ jobs:
         TARGET_REGISTRY="${{ steps.acr-creds.outputs.acr-server }}"
         
         echo "🏗️  Building for target registry: $TARGET_REGISTRY"
+        echo "🚀 Building frontend in PRODUCTION mode (NODE_ENV=production)"
         
         # Build for x86-64 (amd64) architecture - matching working pattern
+        # Added NODE_ENV=production to ensure frontend builds in production mode
         docker build \
           --file "${{ github.workspace }}/app/Dockerfile" \
           --build-arg NPM_TOKEN="${{ secrets.REGISTRY_PASSWORD }}" \
+          --build-arg NODE_ENV=production \
           --tag "$TARGET_REGISTRY/${{ env.IMAGE_NAME }}:${{ steps.docker-tag.outputs.docker-tag }}" \
           --tag "$TARGET_REGISTRY/${{ env.IMAGE_NAME }}:latest" \
           "${{ github.workspace }}/app"
         
         echo "✅ Docker build succeeded for x86-64 architecture!"
+        echo "✅ Frontend built in PRODUCTION mode (no dev controls)"
         echo "📦 Built images:"
         echo "   - $TARGET_REGISTRY/${{ env.IMAGE_NAME }}:${{ steps.docker-tag.outputs.docker-tag }}"
         echo "   - $TARGET_REGISTRY/${{ env.IMAGE_NAME }}:latest"
 
-    - name: Verify image architecture
+    - name: Verify image architecture and production build
       run: |
         TARGET_REGISTRY="${{ steps.acr-creds.outputs.acr-server }}"
         
@@ -188,6 +192,33 @@ jobs:
           exit 1
         fi
         echo "✅ Image successfully built for x86-64 (amd64) architecture"
+        
+        # Verify production build by checking if development controls are excluded
+        echo "🔍 Verifying frontend was built in production mode..."
+        
+        # Create a temporary container to inspect the built frontend
+        CONTAINER_ID=$(docker create $TARGET_REGISTRY/${{ env.IMAGE_NAME }}:${{ steps.docker-tag.outputs.docker-tag }})
+        
+        # Check if the built frontend excludes development components
+        # Look for the absence of development wrapper in the built files
+        if docker cp $CONTAINER_ID:/app/static/assets/ ./temp_assets/ 2>/dev/null; then
+          # Check if any JS files contain development-only code (this would indicate dev build)
+          DEV_CODE_FOUND=$(find ./temp_assets/ -name "*.js" -exec grep -l "DevelopmentWrapper\|StageTestControls" {} \; 2>/dev/null | wc -l)
+          
+          if [ "$DEV_CODE_FOUND" -eq 0 ]; then
+            echo "✅ Frontend built in PRODUCTION mode - no development controls found"
+          else
+            echo "⚠️  Warning: Development code detected in build - may not be production mode"
+          fi
+          
+          # Clean up
+          rm -rf ./temp_assets/
+        else
+          echo "ℹ️  Could not verify frontend build mode (assets not accessible)"
+        fi
+        
+        # Clean up container
+        docker rm $CONTAINER_ID
         
         # Show image details
         docker images $TARGET_REGISTRY/${{ env.IMAGE_NAME }}

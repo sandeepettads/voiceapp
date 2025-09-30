@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import "./voice-stage-visualizer.css";
-import useBrowserCapabilities from "../../hooks/useBrowserCapabilities";
 
-// SVG imports for progressive enhancement
-import IdleVisualizationFullUrl from "../../assets/idle-visualization-2x-full.svg";
-import IdleVisualizationSimpleUrl from "../../assets/idle-visualization-2x-simple.svg";
+// Import new design assets (same as NewVoiceStageVisualizer)
+import StaticHaloUrl from "@/assets/static-halo.svg";
+import OptumOUrl from "@/assets/Optum O.svg";
+import ListeningHalo1Url from "@/assets/listening-halo-1.svg";
+import ListeningHalo2Url from "@/assets/listening-halo-2.svg";
+import SoundWaveAnimatedUrl from "@/assets/sound-wave-animated.svg";
 
 // Types for voice stages
 export type VoiceStage = "idle" | "listening" | "processing" | "responding" | "microphone";
@@ -18,121 +20,150 @@ interface VoiceStageVisualizerProps {
   onClick?: () => void;
 }
 
-// Progressive Enhancement IdleStage component with browser capability detection
-const IdleStage: React.FC<{ size: string }> = ({ size }) => {
-  const { isModernBrowser } = useBrowserCapabilities();
-
-  return (
-    <div className={`voice-stage idle-stage ${size}`}>
-      {isModernBrowser ? (
-        <img 
-          src={IdleVisualizationFullUrl} 
-          alt="Idle visualization (enhanced)" 
-          className="idle-visualization-svg"
-        />
-      ) : (
-        <img 
-          src={IdleVisualizationSimpleUrl} 
-          alt="Idle visualization (compatible)" 
-          className="idle-visualization-svg"
-        />
-      )}
-    </div>
-  );
-};
-
-// Animated Listening Frame Component
-const AnimatedListeningFrame: React.FC<{ size: string }> = ({ size }) => {
-  // Size mapping for responsive design
-  const getSizeClasses = (size: string) => {
-    switch (size) {
-      case "small":
-        return { container: "w-32 h-32", halo: "w-24 h-24", center: "w-8 h-8" };
-      case "medium":
-        return { container: "w-64 h-64", halo: "w-48 h-48", center: "w-16 h-16" };
-      case "large":
-      default:
-        return { container: "w-96 h-96", halo: "w-72 h-72", center: "w-20 h-20" };
-    }
+// Shared Optum O component used across all stages
+const OptumO: React.FC<{ size: string }> = ({ size }) => {
+  // Calculate size based on the size prop to maintain ratio
+  const sizeMapping = {
+    small: "w-20 h-20", 
+    medium: "w-40 h-40", 
+    large: "w-60 h-60", 
   };
 
-  const sizeClasses = getSizeClasses(size);
+  const sizeClass = sizeMapping[size as keyof typeof sizeMapping] || sizeMapping.large;
 
   return (
-    <div className={`listening-stage-container relative ${sizeClasses.container} rounded-xl overflow-hidden flex items-center justify-center`}>
-      {/* Background with subtle gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100" />
-      
-      {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-        <div className={`${sizeClasses.halo} rounded-full border border-cyan-200/10`} />
-      </div>
-
-      {/* Halo Ring (Rotating) */}
-      <motion.div
-        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-        animate={{ rotate: 360 }}
-        transition={{
-          duration: 4.1,
-          repeat: Infinity,
-          ease: "linear"
-        }}
-      >
-        <div className={`${sizeClasses.halo} rounded-full border-[3px] border-transparent bg-gradient-to-r from-cyan-200 via-white via-orange-500 via-yellow-200 to-blue-300 p-[3px]`}>
-          <div className="w-full h-full rounded-full bg-transparent" />
-        </div>
-      </motion.div>
-
-      {/* The O Layer (Pulsating) */}
-      <motion.div
-        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-        animate={{ scale: [1, 1.1, 1] }}
-        transition={{
-          duration: 4.4,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-      >
-        {/* Outer O Ring */}
-        <div className={`relative ${sizeClasses.center} rounded-full border-[2px] border-orange-300/80 bg-transparent`}>
-          {/* Inner O Fill */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 rounded-full bg-gradient-to-br from-orange-300 via-orange-500 to-orange-600 opacity-90">
-            {/* Inner Hole */}
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 rounded-full bg-white" />
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Additional glow effects */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-gradient-conic from-cyan-100/20 via-orange-100/20 to-blue-100/20 rounded-full blur-3xl" />
-      </div>
+    <div className={`optum-o absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${sizeClass}`}>
+      <img
+        src={OptumOUrl}
+        alt="Optum O"
+        className="w-full h-full object-contain"
+      />
     </div>
   );
 };
 
-const ListeningStage: React.FC<{ size: string }> = ({ size }) => (
-  <div className={`voice-stage listening-stage ${size}`}>
-    <AnimatedListeningFrame size={size} />
-  </div>
-);
-
-const ProcessingStage: React.FC<{ size: string }> = ({ size }) => (
-  <div className={`voice-stage processing-stage ${size}`}>
-    <svg viewBox="0 0 598 529" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* Minimal white background - no animations */}
-      <rect width="598" height="529" fill="white" />
-    </svg>
-  </div>
-);
-
-const RespondingStage: React.FC<{ size: string; audioData?: Float32Array | number[] }> = ({ size, audioData: _audioData }) => {
+// New Idle Stage Component using new designs
+const IdleStage: React.FC<{ size: string }> = ({ size }) => {
   return (
-    <div className={`voice-stage responding-stage ${size}`}>
-      <svg viewBox="0 0 598 529" fill="none" xmlns="http://www.w3.org/2000/svg">
-        {/* Minimal white background - no animations */}
-        <rect width="598" height="529" fill="white" />
-      </svg>
+    <div className={`voice-stage idle-stage ${size} relative`}>
+      {/* Outer Static Halo */}
+      <img
+        src={StaticHaloUrl}
+        alt="Static Halo"
+        className="w-full h-full object-contain"
+      />
+      
+      {/* Inner Optum O */}
+      <OptumO size={size} />
+    </div>
+  );
+};
+
+// New Listening Stage Component using new designs
+const ListeningStage: React.FC<{ size: string }> = ({ size }) => {
+  return (
+    <div className={`voice-stage listening-stage ${size} relative`}>
+      {/* Counter-rotating halos */}
+      <motion.div
+        className="absolute inset-0"
+        animate={{ rotate: 360 }}
+        transition={{ 
+          duration: 20, 
+          repeat: Infinity, 
+          ease: "linear" 
+        }}
+      >
+        <img
+          src={ListeningHalo1Url}
+          alt="Listening Halo"
+          className="w-full h-full object-contain"
+        />
+      </motion.div>
+      
+      <motion.div
+        className="absolute inset-0"
+        animate={{ rotate: -360 }}
+        transition={{ 
+          duration: 25, 
+          repeat: Infinity, 
+          ease: "linear" 
+        }}
+      >
+        <img
+          src={ListeningHalo2Url}
+          alt="Listening Halo"
+          className="w-full h-full object-contain"
+        />
+      </motion.div>
+      
+      {/* Inner Optum O (static) */}
+      <OptumO size={size} />
+    </div>
+  );
+};
+
+// Processing Stage Component using new designs (idle stage with pulsing animation)
+const ProcessingStage: React.FC<{ size: string }> = ({ size }) => {
+  return (
+    <div className={`voice-stage processing-stage ${size} relative`}>
+      {/* Outer Static Halo with subtle pulsing */}
+      <motion.div
+        animate={{ scale: [1, 1.05, 1] }}
+        transition={{ 
+          duration: 2, 
+          repeat: Infinity, 
+          ease: "easeInOut" 
+        }}
+      >
+        <img
+          src={StaticHaloUrl}
+          alt="Static Halo"
+          className="w-full h-full object-contain"
+        />
+      </motion.div>
+      
+      {/* Inner Optum O with opposite pulsing */}
+      <motion.div
+        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+        animate={{ scale: [1, 0.95, 1] }}
+        transition={{ 
+          duration: 2, 
+          repeat: Infinity, 
+          ease: "easeInOut" 
+        }}
+      >
+        <OptumO size={size} />
+      </motion.div>
+    </div>
+  );
+};
+
+// New Responding Stage Component using new designs
+const RespondingStage: React.FC<{ size: string; audioData?: Float32Array | number[] }> = ({ 
+  size,
+  audioData: _audioData // Prefix with underscore to indicate intentionally unused
+}) => {
+  // Sound wave is positioned at the center of Optum O
+  return (
+    <div className={`voice-stage responding-stage ${size} relative`}>
+      {/* Outer Static Halo (same as idle) */}
+      <img
+        src={StaticHaloUrl}
+        alt="Static Halo"
+        className="w-full h-full object-contain"
+      />
+      
+      {/* Inner Optum O */}
+      <OptumO size={size} />
+      
+      {/* Sound Wave Animation at center of Optum O */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2/3 h-2/3 flex items-center justify-center">
+        <img
+          src={SoundWaveAnimatedUrl}
+          alt="Sound Wave"
+          className="w-full h-full object-contain"
+        />
+      </div>
     </div>
   );
 };

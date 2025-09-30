@@ -2,6 +2,10 @@
 # Using Chainguard Node.js image from enterprise registry (verified available tag)
 FROM docker.repo1.uhc.com/orxcoreplatform/chainguard/node:24.4-latest AS build-stage
 
+# Accept NODE_ENV as build argument (defaults to production)
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
+
 # Set the working directory and copy frontend files
 WORKDIR /frontend
 COPY ./frontend/ .
@@ -19,8 +23,10 @@ RUN echo "registry=https://repo1.uhc.com/artifactory/api/npm/npm-virtual/" > .np
     echo "always-auth=true" >> .npmrc && \
     echo "//repo1.uhc.com/artifactory/api/npm/npm-virtual/:_authToken=${NPM_TOKEN}" >> .npmrc
 
-RUN npm install
-RUN npm run build
+# Install dependencies and build in production mode
+RUN echo "Building frontend with NODE_ENV=${NODE_ENV}" && \
+    npm install && \
+    npm run build
 
 # Stage 2: Serve the built app with a static file server  
 # Using Python slim image with pip and shell support from enterprise registry
