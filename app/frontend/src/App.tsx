@@ -210,14 +210,13 @@ function App() {
         currentStage: devCurrentStage, 
         isRecording: devIsRecording, 
         isSpeaking: devIsSpeaking,
-        isProcessing: devIsProcessing,
+        isProcessing: _devIsProcessing, // Prefix with underscore to indicate intentionally unused
         audioData: devAudioData 
     }) => {
         // Use dev state if available, otherwise use production state
         const displayStage = devCurrentStage ?? currentStage;
         const displayIsRecording = devIsRecording ?? isRecording;
         const displayIsSpeaking = devIsSpeaking ?? isSpeaking;
-        const displayIsProcessing = devIsProcessing ?? isProcessing;
         const displayAudioData = devAudioData ?? audioData;
         
         return (

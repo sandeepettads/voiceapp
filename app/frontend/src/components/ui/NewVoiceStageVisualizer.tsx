@@ -15,7 +15,7 @@ import ListeningHalo2Url from "@/assets/listening-halo-2.svg";
 import SoundWaveAnimatedUrl from "@/assets/sound-wave-animated.svg";
 
 // Types for voice stages
-export type VoiceStage = "idle" | "listening" | "processing" | "responding";
+export type VoiceStage = "idle" | "listening" | "processing" | "responding" | "microphone";
 
 interface VoiceStageVisualizerProps {
   stage: VoiceStage;
@@ -147,7 +147,7 @@ const ProcessingStage: React.FC<{ size: string }> = ({ size }) => {
 // New Responding Stage Component
 const RespondingStage: React.FC<{ size: string; audioData?: Float32Array | number[] }> = ({ 
   size,
-  audioData 
+  audioData: _audioData // Prefix with underscore to indicate intentionally unused
 }) => {
   // Sound wave is positioned at the center of Optum O
   return (
@@ -203,6 +203,8 @@ const NewVoiceStageVisualizer: React.FC<VoiceStageVisualizerProps> = ({
         return <ProcessingStage size={size} />;
       case "responding":
         return <RespondingStage size={size} audioData={audioData} />;
+      case "microphone":
+        return <IdleStage size={size} />; // Use idle stage for microphone
       default:
         return <IdleStage size={size} />;
     }

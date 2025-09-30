@@ -7,7 +7,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import type { VoiceStage } from '@/components/ui/voice-stage-visualizer';
 import StageTestControls from './StageTestControls';
-import { generateMockAudioData, mockWebSocketEvents } from './MockDataGenerator';
+import { generateMockAudioData } from './MockDataGenerator';
 
 interface DevelopmentWrapperProps {
   children: (props: {
